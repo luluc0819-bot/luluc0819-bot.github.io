@@ -1,0 +1,1192 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>方案 A：你的压力应对模式是什么？</title>
+    <style>
+        /* ==========================================
+           1. 基础重置与现代自适应字体系统
+           ========================================== */
+        *, *::before, *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        :root {A
+            --bg-grad-start: #f4f7fb;
+            --bg-grad-end: #dce5f2;
+            --card-bg: rgba(255, 255, 255, 0.96);
+            --text-main: #1e293b;
+            --text-sub: #64748b;
+            --text-muted: #94a3b8;
+            --brand: #2563eb;
+            --brand-hover: #1d4ed8;
+            --brand-light: #eff6ff;
+            --border-color: #e2e8f0;
+            
+            /* 四种人格模式主题色 */
+            --color-A: #ec4899; /* 行动解决型 */
+            --bg-A: #fdf2f8;
+            --color-R: #8b5cf6; /* 反复思考型 */
+            --bg-R: #f5f3ff;
+            --color-V: #06b6d4; /* 暂时回避型 */
+            --bg-V: #ecfeff;
+            --color-S: #10b981; /* 寻求支持型 */
+            --bg-S: #ecfdf5;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background: linear-gradient(135deg, var(--bg-grad-start) 0%, var(--bg-grad-end) 100%);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+            line-height: 1.6;
+        }
+
+        /* ==========================================
+           2. 布局容器与 3D 翻转舞台核心样式
+           ========================================== */
+        .app-wrapper {
+            width: 100%;
+            max-width: 540px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .header-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(255, 255, 255, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.9);
+            padding: 6px 14px;
+            border-radius: 999px;
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--text-sub);
+            letter-spacing: 0.05em;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+            margin-bottom: 8px;
+        }
+
+        .header h1 {
+            font-size: 24px;
+            font-weight: 800;
+            color: #0f172a;
+            letter-spacing: -0.02em;
+        }
+
+        .header p {
+            font-size: 13px;
+            color: var(--text-sub);
+            margin-top: 4px;
+        }
+
+        /* 3D 透视舞台 */
+        .flip-stage {
+            perspective: 1400px;
+            width: 100%;
+            position: relative;
+        }
+
+        /* 卡片主体：支持 3D 翻转过渡 */
+        .flip-card {
+            width: 100%;
+            position: relative;
+            transform-style: preserve-3d;
+            transition: transform 0.65s cubic-bezier(0.34, 1.56, 0.64, 1);
+            display: grid;
+            grid-template-columns: 1fr;
+        }
+
+        .flip-card.is-flipped {
+            transform: rotateY(180deg);
+        }
+
+        /* 正面与背面共享网格定位，自动撑开最高高度，避免绝对定位高度塌陷 */
+        .card-face {
+            grid-area: 1 / 1;
+            width: 100%;
+            background: var(--card-bg);
+            border-radius: 24px;
+            padding: 28px 24px;
+            box-shadow: 0 20px 40px -15px rgba(15, 23, 42, 0.1), 0 0 1px 1px rgba(255, 255, 255, 0.8);
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .card-back {
+            transform: rotateY(180deg);
+        }
+
+        /* 视图切换控制 */
+        .view-section {
+            display: none;
+            animation: fadeIn 0.35s ease forwards;
+        }
+
+        .view-section.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(6px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ==========================================
+           3. 欢迎页组件样式
+           ========================================== */
+        .intro-hero {
+            text-align: center;
+            padding: 12px 0;
+        }
+
+        .icon-circle {
+            width: 84px;
+            height: 84px;
+            margin: 0 auto 20px;
+            border-radius: 50%;
+            background: var(--brand-light);
+            border: 2px solid #dbeafe;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--brand);
+            box-shadow: 0 10px 25px -5px rgba(37, 99, 235, 0.2);
+            position: relative;
+        }
+
+        .intro-title {
+            font-size: 19px;
+            font-weight: 700;
+            color: var(--text-main);
+            margin-bottom: 10px;
+        }
+
+        .intro-desc {
+            font-size: 14px;
+            color: var(--text-sub);
+            margin-bottom: 22px;
+            padding: 0 8px;
+        }
+
+        .feature-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            background: #f8fafc;
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 14px;
+            margin-bottom: 24px;
+            text-align: left;
+        }
+
+        .feature-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 12px;
+            color: #475569;
+            font-weight: 500;
+        }
+
+        .btn-primary {
+            width: 100%;
+            padding: 15px 20px;
+            background: var(--brand);
+            color: #ffffff;
+            border: none;
+            border-radius: 16px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            box-shadow: 0 8px 20px -4px rgba(37, 99, 235, 0.4);
+            transition: all 0.2s ease;
+        }
+
+        .btn-primary:hover {
+            background: var(--brand-hover);
+            transform: translateY(-1px);
+        }
+
+        .btn-primary:active {
+            transform: translateY(1px);
+        }
+
+        .disclaimer {
+            font-size: 11px;
+            color: var(--text-muted);
+            text-align: center;
+            margin-top: 14px;
+        }
+
+        /* ==========================================
+           4. 答题卡片区域样式
+           ========================================== */
+        .progress-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--text-sub);
+            margin-bottom: 8px;
+        }
+
+        .progress-pct {
+            color: var(--brand);
+        }
+
+        .progress-track {
+            width: 100%;
+            height: 8px;
+            background: #e2e8f0;
+            border-radius: 999px;
+            overflow: hidden;
+            margin-bottom: 22px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: var(--brand);
+            border-radius: 999px;
+            transition: width 0.35s ease;
+        }
+
+        .q-tag {
+            display: inline-block;
+            padding: 4px 12px;
+            background: var(--brand-light);
+            color: var(--brand);
+            border: 1px solid #bfdbfe;
+            border-radius: 999px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-bottom: 12px;
+        }
+
+        .q-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: #0f172a;
+            margin-bottom: 20px;
+            line-height: 1.5;
+        }
+
+        .options-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .option-btn {
+            width: 100%;
+            text-align: left;
+            padding: 14px 16px;
+            background: #ffffff;
+            border: 1.5px solid var(--border-color);
+            border-radius: 16px;
+            font-size: 14px;
+            color: #334155;
+            cursor: pointer;
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            transition: all 0.2s ease;
+            font-family: inherit;
+            line-height: 1.5;
+        }
+
+        .option-btn:hover {
+            border-color: #93c5fd;
+            background: #f8fafc;
+            transform: translateY(-1px);
+        }
+
+        .option-btn.selected {
+            border-color: var(--brand);
+            background: var(--brand-light);
+            color: #1e3a8a;
+            font-weight: 600;
+        }
+
+        .option-letter {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: #f1f5f9;
+            color: #64748b;
+            font-size: 12px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            margin-top: 1px;
+            transition: all 0.2s ease;
+        }
+
+        .option-btn.selected .option-letter {
+            background: var(--brand);
+            color: #ffffff;
+        }
+
+        .quiz-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 12px;
+            color: var(--text-muted);
+            padding-top: 8px;
+            border-top: 1px solid #f1f5f9;
+        }
+
+        .btn-text {
+            background: none;
+            border: none;
+            color: var(--text-sub);
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 4px 0;
+        }
+
+        .btn-text:disabled {
+            opacity: 0.35;
+            cursor: not-allowed;
+        }
+
+        /* ==========================================
+           5. 结果页正反翻转卡片样式
+           ========================================== */
+        .flip-hint-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #f8fafc;
+            border: 1px dashed #cbd5e1;
+            border-radius: 12px;
+            padding: 8px 12px;
+            margin-bottom: 16px;
+            font-size: 12px;
+            color: var(--text-sub);
+        }
+
+        .btn-flip-toggle {
+            background: #ffffff;
+            border: 1px solid var(--border-color);
+            color: var(--brand);
+            font-size: 12px;
+            font-weight: 700;
+            padding: 5px 12px;
+            border-radius: 999px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.04);
+            transition: all 0.2s ease;
+        }
+
+        .btn-flip-toggle:hover {
+            background: var(--brand-light);
+            border-color: #bfdbfe;
+        }
+
+        .res-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            padding-bottom: 14px;
+            border-bottom: 1px solid #f1f5f9;
+            margin-bottom: 16px;
+        }
+
+        .res-subtitle {
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--brand);
+            letter-spacing: 0.04em;
+        }
+
+        .res-title {
+            font-size: 26px;
+            font-weight: 900;
+            color: #0f172a;
+            margin-top: 2px;
+        }
+
+        .res-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 6px 12px;
+            border-radius: 999px;
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        .section-label {
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            margin-bottom: 6px;
+        }
+
+        .res-desc-box {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 14px;
+            padding: 14px;
+            font-size: 13.5px;
+            color: #334155;
+            margin-bottom: 16px;
+        }
+
+        .traits-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 16px;
+        }
+
+        @media (max-width: 480px) {
+            .traits-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .trait-box {
+            padding: 12px;
+            border-radius: 14px;
+            font-size: 12.5px;
+        }
+
+        .trait-box.adv {
+            background: #ecfdf5;
+            border: 1px solid #d1fae5;
+            color: #065f46;
+        }
+
+        .trait-box.blind {
+            background: #fffbeb;
+            border: 1px solid #fef3c7;
+            color: #92400e;
+        }
+
+        .trait-title {
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            margin-bottom: 4px;
+            font-size: 12px;
+        }
+
+        /* 维度得分条 */
+        .breakdown-box {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 14px;
+            padding: 14px;
+            margin-bottom: 18px;
+        }
+
+        .bar-row {
+            margin-bottom: 8px;
+        }
+
+        .bar-row:last-child {
+            margin-bottom: 0;
+        }
+
+        .bar-meta {
+            display: flex;
+            justify-content: space-between;
+            font-size: 11.5px;
+            color: #475569;
+            margin-bottom: 3px;
+        }
+
+        .bar-track {
+            width: 100%;
+            height: 6px;
+            background: #e2e8f0;
+            border-radius: 999px;
+            overflow: hidden;
+        }
+
+        .bar-fill {
+            height: 100%;
+            border-radius: 999px;
+            transition: width 0.6s ease;
+        }
+
+        /* 卡片背面：专属觉察练习与行动锦囊 */
+        .practice-hero {
+            background: linear-gradient(135deg, #eef2ff 0%, #e0e7ff 100%);
+            border: 1px solid #c7d2fe;
+            border-radius: 16px;
+            padding: 18px;
+            margin-bottom: 16px;
+        }
+
+        .practice-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 12px;
+            font-weight: 700;
+            color: #3730a3;
+            margin-bottom: 8px;
+        }
+
+        .practice-name {
+            font-size: 18px;
+            font-weight: 800;
+            color: #1e1b4b;
+            margin-bottom: 8px;
+        }
+
+        .practice-steps {
+            font-size: 13.5px;
+            color: #312e81;
+            line-height: 1.65;
+        }
+
+        .reflection-box {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 14px;
+            padding: 14px;
+            margin-bottom: 18px;
+        }
+
+        .reflection-box h4 {
+            font-size: 13px;
+            font-weight: 700;
+            color: #0f172a;
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .reflection-box p {
+            font-size: 12.5px;
+            color: #475569;
+        }
+
+        /* 底部操作按钮组 */
+        .action-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .btn-secondary {
+            padding: 12px 14px;
+            background: #ffffff;
+            border: 1px solid var(--border-color);
+            border-radius: 14px;
+            font-size: 13px;
+            font-weight: 600;
+            color: #334155;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            transition: all 0.2s ease;
+        }
+
+        .btn-secondary:hover {
+            background: #f8fafc;
+            border-color: #cbd5e1;
+        }
+
+        .footer-note {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 11.5px;
+            color: var(--text-muted);
+        }
+
+        /* 自定义提示框 Toast */
+        .toast {
+            position: fixed;
+            bottom: 24px;
+            left: 50%;
+            transform: translateX(-50%) translateY(20px);
+            background: rgba(15, 23, 42, 0.92);
+            color: #ffffff;
+            padding: 10px 18px;
+            border-radius: 999px;
+            font-size: 13px;
+            font-weight: 500;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+            opacity: 0;
+            pointer-events: none;
+            transition: all 0.3s ease;
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .toast.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="app-wrapper">
+        <!-- 顶部标题 -->
+        <header class="header">
+            <div class="header-badge">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"></polygon>
+                </svg>
+                <span>心理觉察实验室 · 方案 A</span>
+            </div>
+            <h1>你的压力应对模式是什么？</h1>
+            <p>探索日常情境中的无意识心理惯性，翻转卡片查看觉察锦囊</p>
+        </header>
+
+        <!-- 3D 翻转卡片主舞台 -->
+        <div class="flip-stage">
+            <div class="flip-card" id="flip-card">
+                
+                <!-- ================= 卡片正面（Intro / Quiz / Result Front） ================= -->
+                <div class="card-face card-front">
+                    
+                    <!-- 视图 1：开始介绍页 -->
+                    <div id="view-intro" class="view-section active">
+                        <div class="intro-hero">
+                            <div class="icon-circle">
+                                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M12 2a8 8 0 0 0-8 8c0 5.4 7 11.5 7.3 11.8a1 1 0 0 0 1.4 0C13 21.5 20 15.4 20 10a8 8 0 0 0-8-8z"></path>
+                                    <circle cx="12" cy="10" r="3"></circle>
+                                </svg>
+                            </div>
+                            <h2 class="intro-title">在压力来临的那一刻，你的第一反应是什么？</h2>
+                            <p class="intro-desc">
+                                面对突如其来的变故、繁重任务或人际摩擦，每个人都有独特的心理应激惯性。回答 <strong>7 个真实生活场景</strong>，解锁你的专属评估翻转卡。
+                            </p>
+                        </div>
+
+                        <div class="feature-grid">
+                            <div class="feature-item">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                                <span>约 2 分钟完成</span>
+                            </div>
+                            <div class="feature-item">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+                                <span>非诊断性自我观察</span>
+                            </div>
+                            <div class="feature-item">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#8b5cf6" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+                                <span>正反双面解读卡片</span>
+                            </div>
+                            <div class="feature-item">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                                <span>基于心理应激理论</span>
+                            </div>
+                        </div>
+
+                        <button class="btn-primary" onclick="startQuiz()">
+                            <span>开始自我探索</span>
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                <line x1="5" y1="12" x2="19" y2="12"></line>
+                                <polyline points="12 5 19 12 12 19"></polyline>
+                            </svg>
+                        </button>
+                        <p class="disclaimer">提示：本互动卡片仅供心理探索与自我觉察参考，不替代专业心理诊断。</p>
+                    </div>
+
+                    <!-- 视图 2：答题互动页 -->
+                    <div id="view-quiz" class="view-section">
+                        <div class="progress-header">
+                            <span id="q-tracker">场景 1 / 7</span>
+                            <span class="progress-pct" id="q-pct">14%</span>
+                        </div>
+                        <div class="progress-track">
+                            <div class="progress-fill" id="q-bar" style="width: 14%;"></div>
+                        </div>
+
+                        <div class="q-tag" id="q-tag">工作/学习</div>
+                        <h2 class="q-title" id="q-title">题目加载中...</h2>
+
+                        <div class="options-list" id="options-list"></div>
+
+                        <div class="quiz-footer">
+                            <button class="btn-text" id="btn-prev" onclick="prevQuestion()">
+                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="15 18 9 12 15 6"></polyline></svg>
+                                <span>上一题</span>
+                            </button>
+                            <span>凭第一直觉选择即可</span>
+                        </div>
+                    </div>
+
+                    <!-- 视图 3：结果页正面（模式画像与倾向分布） -->
+                    <div id="view-result-front" class="view-section">
+                        <div class="flip-hint-bar">
+                            <span>卡片正面 · 模式画像</span>
+                            <button class="btn-flip-toggle" onclick="toggleFlip(true)">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="17 1 21 5 17 9"></polyline><path d="M3 11V9a4 4 0 0 1 4-4h14"></path><polyline points="7 23 3 19 7 15"></polyline><path d="M21 13v2a4 4 0 0 1-4 4H3"></path></svg>
+                                <span>翻转查看觉察练习</span>
+                            </button>
+                        </div>
+
+                        <div class="res-header">
+                            <div>
+                                <div class="res-subtitle">你的核心压力应对模式</div>
+                                <h2 class="res-title" id="res-title">行动解决型</h2>
+                            </div>
+                            <div class="res-badge" id="res-badge">
+                                <span id="res-tag">高效破局者</span>
+                            </div>
+                        </div>
+
+                        <div class="section-label">模式特点描述</div>
+                        <div class="res-desc-box" id="res-desc"></div>
+
+                        <div class="traits-grid">
+                            <div class="trait-box adv">
+                                <div class="trait-title">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                                    <span>核心心理优势</span>
+                                </div>
+                                <p id="res-adv"></p>
+                            </div>
+                            <div class="trait-box blind">
+                                <div class="trait-title">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+                                    <span>需要留意的盲点</span>
+                                </div>
+                                <p id="res-blind"></p>
+                            </div>
+                        </div>
+
+                        <div class="breakdown-box">
+                            <div class="section-label" style="margin-bottom: 10px;">四项应对倾向分布</div>
+                            <div id="breakdown-list"></div>
+                        </div>
+
+                        <button class="btn-primary" onclick="toggleFlip(true)">
+                            <span>翻转卡片 · 解锁专属觉察练习</span>
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="17 1 21 5 17 9"></polyline><path d="M3 11V9a4 4 0 0 1 4-4h14"></path><polyline points="7 23 3 19 7 15"></polyline><path d="M21 13v2a4 4 0 0 1-4 4H3"></path></svg>
+                        </button>
+                    </div>
+
+                </div>
+
+                <!-- ================= 卡片背面（觉察练习与行动锦囊） ================= -->
+                <div class="card-face card-back">
+                    <div>
+                        <div class="flip-hint-bar">
+                            <span>卡片背面 · 觉察锦囊</span>
+                            <button class="btn-flip-toggle" onclick="toggleFlip(false)">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="17 1 21 5 17 9"></polyline><path d="M3 11V9a4 4 0 0 1 4-4h14"></path><polyline points="7 23 3 19 7 15"></polyline><path d="M21 13v2a4 4 0 0 1-4 4H3"></path></svg>
+                                <span>翻回模式画像</span>
+                            </button>
+                        </div>
+
+                        <div class="res-header">
+                            <div>
+                                <div class="res-subtitle" id="back-type-subtitle">行动解决型 · 定制处方</div>
+                                <h2 class="res-title" style="font-size: 22px;">每日微觉察练习</h2>
+                            </div>
+                        </div>
+
+                        <div class="practice-hero">
+                            <div class="practice-tag">
+                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><circle cx="12" cy="12" r="10"></circle><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"></polygon></svg>
+                                <span>推荐练习工具</span>
+                            </div>
+                            <div class="practice-name" id="back-practice-name">【微小的暂停】</div>
+                            <p class="practice-steps" id="back-practice-desc"></p>
+                        </div>
+
+                        <div class="reflection-box">
+                            <h4>
+                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2.2"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path></svg>
+                                <span>自我对话提问</span>
+                            </h4>
+                            <p id="back-reflection-q"></p>
+                        </div>
+                    </div>
+
+                    <div class="action-group">
+                        <button class="btn-secondary" onclick="copyResultSummary()">
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                            <span>复制结果文案</span>
+                        </button>
+                        <button class="btn-secondary" onclick="restartQuiz()">
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="1 4 1 10 7 10"></polyline><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path></svg>
+                            <span>重新测试</span>
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <footer class="footer-note">
+            基于 Lazarus & Folkman 心理应激与应对理论设计 · 独立离线版
+        </footer>
+    </div>
+
+    <!-- 底部提示 Toast -->
+    <div class="toast" id="toast">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+        <span id="toast-text">提示信息</span>
+    </div>
+
+    <script>
+        // ==========================================
+        // 1. 题库与四种应对模式数据
+        // ==========================================
+        const QUESTIONS = [
+            {
+                tag: "工作 / 学习",
+                question: "当你的工作或学习项目中突然出现严重错误，且截止时间紧迫时，你通常会？",
+                options: [
+                    { text: "立刻停止焦虑，列出清单分步骤修复，先搞定最紧急的部分", type: "A" },
+                    { text: "脑海中反复回放“为什么会出错”、“刚才哪步漏掉了”，感到沮丧", type: "R" },
+                    { text: "感到极度压抑，想先离开工位倒杯水或刷刷手机，稍微缓一缓", type: "V" },
+                    { text: "第一时间找同事或伙伴同步情况，求助或探讨最有效的解决办法", type: "S" }
+                ]
+            },
+            {
+                tag: "人际交往",
+                question: "和要好的朋友或伴侣发生误会，对方发来了一长串冷淡甚至质问的信息时：",
+                options: [
+                    { text: "反复琢磨对方字里行间的语气，逐字分析自己是不是哪里说错了", type: "R" },
+                    { text: "把手机搁在一边，等自己心情平静、或者忙完手头事之后再作打算", type: "V" },
+                    { text: "直接打个电话或约出来当面条分缕析地把事情讲清楚", type: "A" },
+                    { text: "找另一个信任的朋友倾诉，听听第三方对这件事的看法", type: "S" }
+                ]
+            },
+            {
+                tag: "生活突发",
+                question: "原本计划已久的一场旅行，临行前突然遭遇天气变故导致行程被取消：",
+                options: [
+                    { text: "立刻打开退改页面，寻找备选方案或寻找替代目的地", type: "A" },
+                    { text: "找同行的朋友或家人抱怨吐槽，大家一起商量接下来怎么办", type: "S" },
+                    { text: "极度扫兴，干脆放下手机睡一觉，什么都不想理", type: "V" },
+                    { text: "陷入低落，不断想“为什么每次运气都这么差”、“早一天走就好了”", type: "R" }
+                ]
+            },
+            {
+                tag: "重大抉择",
+                question: "面临职业转型或重要的人生选择，前景充满不确定性时：",
+                options: [
+                    { text: "在脑海中不断演练各种失败的可能场景，越想越觉得心烦意乱", type: "R" },
+                    { text: "搜集尽可能多的信息，做利弊分析，制定明确的行动路线图", type: "A" },
+                    { text: "咨询前辈、亲朋好友的经验，希望能得到别人的建议或鼓励", type: "S" },
+                    { text: "觉得压力巨大，暂时不想考虑，决定先顺其自然把眼前的日子过好", type: "V" }
+                ]
+            },
+            {
+                tag: "身心状态",
+                question: "近来感觉身体很疲惫，且有一堆烦心事堆积在一起时：",
+                options: [
+                    { text: "给自己放个假，看剧、打游戏或睡大觉，暂时隔绝外界烦扰", type: "V" },
+                    { text: "找亲近的人聊聊天、聚餐散步，在陪伴中释放掉负面情绪", type: "S" },
+                    { text: "重新调整时间表，剔除不必要的任务，严格规划休息与工作时间", type: "A" },
+                    { text: "不停焦虑自己的状态和未完成的事情，越想越难以入睡", type: "R" }
+                ]
+            },
+            {
+                tag: "评价反馈",
+                question: "在团队会议或公开场合，你的某个想法被当场提出了较多质疑：",
+                options: [
+                    { text: "认真记录对方提出的缺点，会后立刻着手修改补充新的论据", type: "A" },
+                    { text: "结束后找关系好的伙伴吐槽，寻求情感上的理解与共鸣", type: "S" },
+                    { text: "表面点头接受，内心一直在重放被质疑的瞬间，懊悔没发挥好", type: "R" },
+                    { text: "尽量不把这当回事，快速把注意力转移到其他轻松的事务上", type: "V" }
+                ]
+            },
+            {
+                tag: "日常财务",
+                question: "月底发现自己的开销严重超支，财务产生压力时：",
+                options: [
+                    { text: "立刻导出账单明细分类，制定下个月的严格预算与缩减计划", type: "A" },
+                    { text: "看着账单长叹一口气，决定先不去管它，过几天再说", type: "V" },
+                    { text: "陷入自我谴责，反复回想“这个月哪笔钱是不该花的冲动消费”", type: "R" },
+                    { text: "向擅长理财的朋友请教记账心得，或和家人商量如何调整开支", type: "S" }
+                ]
+            }
+        ];
+
+        const PROFILES = {
+            A: {
+                title: "行动解决型",
+                tag: "高效破局者",
+                color: "#ec4899",
+                bg: "#fdf2f8",
+                desc: "面对压力，你是一个坚定的“问题解决者”。你的第一直觉不是沉溺于情绪，而是迅速切换到控制模式：分析原因、制定计划、采取行动。你相信行动是治愈焦虑的最好良药。",
+                adv: "具有极高的执行力与掌控感，能迅速止损，在突发危机中表现得果断而可靠。",
+                blind: "容易忽视自身或他人的情绪感受，可能因过度追求控制而感到身心俱疲。",
+                practiceName: "【微小的暂停】",
+                practice: "在遇到压力试图“立刻行动”前，强制自己做三次深呼吸，默念：“除了解决问题，我现在感受到了什么情绪？”允许自己停留 10 秒不强行控制，接纳情绪的存在后再出发。",
+                reflection: "“如果此刻不需要我立刻解决所有问题，我最想为自己的身体或心情做一件什么小事？”"
+            },
+            R: {
+                title: "反复思考型",
+                tag: "深度觉察者",
+                color: "#8b5cf6",
+                bg: "#f5f3ff",
+                desc: "面对压力，你的大脑会迅速进入“高频分析模式”。你对细节敏感，倾向于反复梳理事情的前因后果并自我反思。这种模式源于你对周全与安全感的高标准追求。",
+                adv: "考虑周全，洞察与反思能力极强，能够深刻理解问题的复杂性，不轻易草率决定。",
+                blind: "容易陷入“反刍思维”的循环，将宝贵能量消耗在未发生的担忧与自我苛责中。",
+                practiceName: "【思维抽屉法】",
+                practice: "准备一张纸，将脑海中反复盘旋的担忧写下来。写完后告诉自己：“这些想法我已经安全收录了。”将纸折起放进抽屉，约定每天晚上固定 15 分钟再统一审视。",
+                reflection: "“我现在反复思考的这件事，是正在发生的事实，还是大脑自动编写的担忧剧本？”"
+            },
+            V: {
+                title: "暂时回避型",
+                tag: "能量保护者",
+                color: "#06b6d4",
+                bg: "#ecfeff",
+                desc: "面对压力，你的本能反应是“建立防火墙”。你倾向于先退后一步，通过转移注意力、休息或拉开距离来保护自己的内心不被过载的情绪压垮，这是一种自然的自我保护。",
+                adv: "懂得及时为情绪设置缓冲带，避免在情绪上头或极度疲惫时做出冲动抉择。",
+                blind: "如果缓冲时间过长，容易将“暂时休息”演变为拖延，导致小问题积攒成大压力。",
+                practiceName: "【5 分钟微启动】",
+                practice: "当你察觉自己在逃避某项压力任务时，对自己说：“我只面对它 5 分钟，5 分钟一到我就有权立刻停止。”往往一旦迈出最初的一小步，心理阻力就会大幅消散。",
+                reflection: "“我此刻想躲开的，究竟是这件事本身的难度，还是我对做不好的恐惧？”"
+            },
+            S: {
+                title: "寻求支持型",
+                tag: "关系连接者",
+                color: "#10b981",
+                bg: "#ecfdf5",
+                desc: "面对压力，你深谙“人际连接”的治愈力量。你不会选择独自硬撑，而是善于向外发出信号，通过倾诉、寻求建议或陪伴来消化情绪、获取新的视角与资源。",
+                adv: "拥有优秀的情感表达能力与社交智慧，善于利用支持系统，能建立温暖的人际纽带。",
+                blind: "有时可能过度依赖外界的确认与安慰，忽略了自己内心原本具备的独立破局潜能。",
+                practiceName: "【内在导师对话】",
+                practice: "在准备向外界求助或倾诉前，先闭上眼睛问问自己：“如果我是自己最睿智、最温柔的好友，我会给现在的自己什么建议？”试着先倾听 1 分钟内在的声音。",
+                reflection: "“除了希望别人给我答案，我内心深处其实已经隐约知道了哪一步是正确的？”"
+            }
+        };
+
+        // ==========================================
+        // 2. 状态控制与交互逻辑
+        // ==========================================
+        let currentIdx = 0;
+        let answers = [];
+        let currentResultType = 'A';
+
+        function switchFrontView(viewId) {
+            ['view-intro', 'view-quiz', 'view-result-front'].forEach(id => {
+                const el = document.getElementById(id);
+                if (id === viewId) {
+                    el.classList.add('active');
+                } else {
+                    el.classList.remove('active');
+                }
+            });
+        }
+
+        function startQuiz() {
+            currentIdx = 0;
+            answers = [];
+            toggleFlip(false);
+            switchFrontView('view-quiz');
+            renderQuestion();
+        }
+
+        function renderQuestion() {
+            const q = QUESTIONS[currentIdx];
+            const total = QUESTIONS.length;
+            const pct = Math.round(((currentIdx + 1) / total) * 100);
+
+            document.getElementById('q-tracker').textContent = `场景 ${currentIdx + 1} / ${total}`;
+            document.getElementById('q-pct').textContent = `${pct}%`;
+            document.getElementById('q-bar').style.width = `${pct}%`;
+            document.getElementById('q-tag').textContent = q.tag;
+            document.getElementById('q-title').textContent = q.question;
+
+            const listEl = document.getElementById('options-list');
+            listEl.innerHTML = '';
+
+            q.options.forEach((opt, i) => {
+                const isSelected = answers[currentIdx] === opt.type;
+                const btn = document.createElement('button');
+                btn.className = `option-btn${isSelected ? ' selected' : ''}`;
+                btn.onclick = () => handleSelect(opt.type);
+
+                const letter = String.fromCharCode(65 + i);
+                btn.innerHTML = `
+                    <span class="option-letter">${letter}</span>
+                    <span>${opt.text}</span>
+                `;
+                listEl.appendChild(btn);
+            });
+
+            document.getElementById('btn-prev').disabled = currentIdx === 0;
+        }
+
+        function handleSelect(type) {
+            answers[currentIdx] = type;
+            renderQuestion();
+
+            setTimeout(() => {
+                if (currentIdx < QUESTIONS.length - 1) {
+                    currentIdx++;
+                    renderQuestion();
+                } else {
+                    showResult();
+                }
+            }, 220);
+        }
+
+        function prevQuestion() {
+            if (currentIdx > 0) {
+                currentIdx--;
+                renderQuestion();
+            }
+        }
+
+        function showResult() {
+            const counts = { A: 0, R: 0, V: 0, S: 0 };
+            answers.forEach(t => {
+                if (counts[t] !== undefined) counts[t]++;
+            });
+
+            let bestType = 'A';
+            let maxScore = -1;
+            for (const key of ['A', 'R', 'V', 'S']) {
+                if (counts[key] > maxScore) {
+                    maxScore = counts[key];
+                    bestType = key;
+                }
+            }
+
+            currentResultType = bestType;
+            const data = PROFILES[bestType];
+
+            // 填充正面数据
+            document.getElementById('res-title').textContent = data.title;
+            document.getElementById('res-tag').textContent = data.tag;
+            const badge = document.getElementById('res-badge');
+            badge.style.color = data.color;
+            badge.style.backgroundColor = data.bg;
+
+            document.getElementById('res-desc').textContent = data.desc;
+            document.getElementById('res-adv').textContent = data.adv;
+            document.getElementById('res-blind').textContent = data.blind;
+
+            // 填充四项倾向进度条
+            const breakdownEl = document.getElementById('breakdown-list');
+            breakdownEl.innerHTML = '';
+            const labels = {
+                A: { name: '行动解决型', color: '#ec4899' },
+                R: { name: '反复思考型', color: '#8b5cf6' },
+                V: { name: '暂时回避型', color: '#06b6d4' },
+                S: { name: '寻求支持型', color: '#10b981' }
+            };
+
+            ['A', 'R', 'V', 'S'].forEach(k => {
+                const pct = Math.round((counts[k] / QUESTIONS.length) * 100);
+                const row = document.createElement('div');
+                row.className = 'bar-row';
+                row.innerHTML = `
+                    <div class="bar-meta">
+                        <span>${labels[k].name}</span>
+                        <strong>${counts[k]} 题 (${pct}%)</strong>
+                    </div>
+                    <div class="bar-track">
+                        <div class="bar-fill" style="width: ${pct}%; background-color: ${labels[k].color};"></div>
+                    </div>
+                `;
+                breakdownEl.appendChild(row);
+            });
+
+            // 填充背面数据
+            document.getElementById('back-type-subtitle').textContent = `${data.title} · 专属觉察处方`;
+            document.getElementById('back-practice-name').textContent = data.practiceName;
+            document.getElementById('back-practice-desc').textContent = data.practice;
+            document.getElementById('back-reflection-q').textContent = data.reflection;
+
+            switchFrontView('view-result-front');
+            toggleFlip(false);
+        }
+
+        function toggleFlip(toBack) {
+            const card = document.getElementById('flip-card');
+            if (toBack) {
+                card.classList.add('is-flipped');
+            } else {
+                card.classList.remove('is-flipped');
+            }
+        }
+
+        function restartQuiz() {
+            toggleFlip(false);
+            setTimeout(() => {
+                switchFrontView('view-intro');
+            }, 250);
+        }
+
+        function copyResultSummary() {
+            const data = PROFILES[currentResultType];
+            const summary = `【我的压力应对模式：${data.title}（${data.tag}）】\n特点：${data.desc}\n专属觉察练习${data.practiceName}：${data.practice}`;
+            
+            const textarea = document.createElement('textarea');
+            textarea.value = summary;
+            textarea.style.position = 'fixed';
+            textarea.style.opacity = '0';
+            document.body.appendChild(textarea);
+            textarea.select();
+            try {
+                document.execCommand('copy');
+                showToast('评估结果与练习锦囊已复制到剪贴板！');
+            } catch (e) {
+                showToast('复制失败，请手动长按文字复制');
+            }
+            document.body.removeChild(textarea);
+        }
+
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            document.getElementById('toast-text').textContent = msg;
+            toast.classList.add('show');
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 2600);
+        }
+    </script>
+</body>
+</html>
