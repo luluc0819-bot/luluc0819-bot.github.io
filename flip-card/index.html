@@ -762,7 +762,7 @@
                     <div id="view-result-front" class="view-section">
                         <div class="flip-hint-bar">
                             <span>卡片正面 · 模式画像</span>
-                            <button class="btn-flip-toggle" onclick="toggleFlip(true)">
+                            <button class="btn-flip-toggle" onclick="onFlipClick(true)">
                                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="17 1 21 5 17 9"></polyline><path d="M3 11V9a4 4 0 0 1 4-4h14"></path><polyline points="7 23 3 19 7 15"></polyline><path d="M21 13v2a4 4 0 0 1-4 4H3"></path></svg>
                                 <span>翻转查看觉察练习</span>
                             </button>
@@ -803,7 +803,7 @@
                             <div id="breakdown-list"></div>
                         </div>
 
-                        <button class="btn-primary" onclick="toggleFlip(true)">
+                        <button class="btn-primary" onclick="onFlipClick(true)">
                             <span>翻转卡片 · 解锁专属觉察练习</span>
                             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="17 1 21 5 17 9"></polyline><path d="M3 11V9a4 4 0 0 1 4-4h14"></path><polyline points="7 23 3 19 7 15"></polyline><path d="M21 13v2a4 4 0 0 1-4 4H3"></path></svg>
                         </button>
@@ -816,7 +816,7 @@
                     <div>
                         <div class="flip-hint-bar">
                             <span>卡片背面 · 觉察锦囊</span>
-                            <button class="btn-flip-toggle" onclick="toggleFlip(false)">
+                            <button class="btn-flip-toggle" onclick="onFlipClick(false)">
                                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="17 1 21 5 17 9"></polyline><path d="M3 11V9a4 4 0 0 1 4-4h14"></path><polyline points="7 23 3 19 7 15"></polyline><path d="M21 13v2a4 4 0 0 1-4 4H3"></path></svg>
                                 <span>翻回模式画像</span>
                             </button>
@@ -1008,6 +1008,22 @@
         let answers = [];
         let currentResultType = 'A';
 
+        // ==========================================
+        // 自定义事件埋点（Umami）安全上报封装
+        // 脚本未加载完成或被拦截时，只在控制台记录，不影响页面功能
+        // ==========================================
+        function trackEvent(name, data) {
+            try {
+                if (window.umami && typeof window.umami.track === 'function') {
+                    window.umami.track(name, data || {});
+                } else {
+                    console.log('[埋点-未上报]', name, data);
+                }
+            } catch (err) {
+                console.warn('[埋点异常]', err);
+            }
+        }
+
         function switchFrontView(viewId) {
             ['view-intro', 'view-quiz', 'view-result-front'].forEach(id => {
                 const el = document.getElementById(id);
@@ -1022,6 +1038,7 @@
         function startQuiz() {
             currentIdx = 0;
             answers = [];
+            trackEvent('quiz_start', { project: '压力应对模式卡片' });
             toggleFlip(false);
             switchFrontView('view-quiz');
             renderQuestion();
@@ -1060,6 +1077,10 @@
 
         function handleSelect(type) {
             answers[currentIdx] = type;
+            trackEvent('option_select', {
+                question: currentIdx + 1,
+                choice: type
+            });
             renderQuestion();
 
             setTimeout(() => {
@@ -1095,6 +1116,13 @@
             }
 
             currentResultType = bestType;
+            trackEvent('quiz_complete', {
+                result: bestType,
+                score_A: counts.A,
+                score_R: counts.R,
+                score_V: counts.V,
+                score_S: counts.S
+            });
             const data = PROFILES[bestType];
 
             // 填充正面数据
@@ -1153,7 +1181,14 @@
             }
         }
 
+        // 用户主动点击翻转按钮时调用（区别于页面内部自动翻转）
+        function onFlipClick(toBack) {
+            trackEvent('card_flip', { direction: toBack ? 'back' : 'front' });
+            toggleFlip(toBack);
+        }
+
         function restartQuiz() {
+            trackEvent('quiz_restart', { result: currentResultType });
             toggleFlip(false);
             setTimeout(() => {
                 switchFrontView('view-intro');
@@ -1161,6 +1196,7 @@
         }
 
         function copyResultSummary() {
+            trackEvent('result_copy', { result: currentResultType });
             const data = PROFILES[currentResultType];
             const summary = `【我的压力应对模式：${data.title}（${data.tag}）】\n特点：${data.desc}\n专属觉察练习${data.practiceName}：${data.practice}`;
             
@@ -1190,5 +1226,7 @@
     </script>
 </div>
 <!-- Cloudflare Web Analytics --><script type='module' src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "78d7d9d7769140009e43bfbe32a23870"}'></script><!-- End Cloudflare Web Analytics -->
+<!-- Umami 自定义事件埋点：注册后把 YOUR_UMAMI_WEBSITE_ID 替换成你的 website-id -->
+<script defer src="https://cloud.umami.is/script.js" data-website-id="YOUR_UMAMI_WEBSITE_ID"></script>
 </body>
 </html>

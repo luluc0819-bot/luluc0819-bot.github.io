@@ -1,0 +1,977 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Leave a trace. — Scent Gallery</title>
+<style>
+  @font-face{
+    font-family:"Playfair Display";
+    font-style:normal;
+    font-weight:500 600;
+    font-display:swap;
+    src:url("./assets/playfair-500-latin.woff2") format("woff2");
+  }
+
+  :root{
+    --bg:#fbf8f4;
+    --fg:#1d1916;
+    --accent:#c08464;
+    --accent-deep:#8c4a2f;
+    --card-radius:24px;
+  }
+
+  *,*::before,*::after{ box-sizing:border-box; }
+
+  html,body{ height:100%; }
+
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--fg);
+    font-family:"Inter","Helvetica Neue",-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+    -webkit-font-smoothing:antialiased;
+    text-rendering:optimizeLegibility;
+    overflow-x:hidden;
+  }
+
+  /* ---------------- Section shell ---------------- */
+  .section{
+    position:relative;
+    min-height:100vh;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    padding:clamp(52px, 7vh, 104px) 20px clamp(28px, 5vh, 64px);
+    overflow-x:clip;
+    overflow-y:visible;
+    isolation:isolate;
+  }
+
+  .ambient{
+    position:absolute;
+    inset:0;
+    z-index:-1;
+    pointer-events:none;
+    background:radial-gradient(ellipse at center,
+      rgba(192,132,100,0.11) 0%,
+      rgba(192,132,100,0.045) 40%,
+      var(--bg) 80%);
+  }
+
+  /* ---------------- Header ---------------- */
+  .eyebrow{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    font-size:10px;
+    letter-spacing:.22em;
+    text-transform:uppercase;
+    color:rgba(29,25,22,.45);
+    white-space:nowrap;
+  }
+
+  .eyebrow .rule{
+    display:block;
+    width:40px;
+    height:1px;
+    background:rgba(29,25,22,.25);
+  }
+
+  .star{ display:block; flex:none; color:var(--accent); }
+
+  .title{
+    margin:clamp(14px, 2.4vh, 22px) 0 0;
+    font-family:"Playfair Display",Georgia,"Times New Roman","Songti SC",serif;
+    font-weight:500;
+    font-size:clamp(2rem,5vw,3.8rem);
+    line-height:1.05;
+    letter-spacing:-.02em;
+    text-align:center;
+  }
+
+  .desc{
+    margin:clamp(10px, 1.8vh, 16px) 0 0;
+    max-width:460px;
+    text-align:center;
+    font-size:13.5px;
+    line-height:1.7;
+    color:rgba(29,25,22,.55);
+    text-wrap:pretty;
+  }
+
+  /* ---------------- Stage ---------------- */
+  .stage-wrap{
+    position:relative;
+    width:100%;
+    display:flex;
+    justify-content:center;
+    margin-top:clamp(12px, 3vh, 44px);
+  }
+
+  .stage{
+    position:relative;
+    width:100%;
+    max-width:980px;
+    touch-action:pan-y;
+    cursor:grab;
+    user-select:none;
+    -webkit-user-select:none;
+    -webkit-tap-highlight-color:transparent;
+    outline:none;
+  }
+
+  .stage.is-dragging{ cursor:grabbing; }
+
+  .stage:focus-visible{
+    outline:2px solid rgba(251,146,60,.55);
+    outline-offset:14px;
+    border-radius:10px;
+  }
+
+  .card,
+  .slot{
+    position:absolute;
+    left:50%;
+    top:50%;
+    will-change:transform,opacity;
+    transform-origin:50% 50%;
+  }
+
+  .card{
+    transform:translate3d(0,0,0);
+    opacity:0;
+    backface-visibility:hidden;
+  }
+
+  .card-image{
+    position:absolute;
+    inset:0;
+    overflow:hidden;
+    border-radius:var(--card-radius);
+    background:#efe7e0;
+  }
+
+  .card-image img{
+    display:block;
+    width:100%;
+    height:100%;
+    object-fit:cover;
+    pointer-events:none;
+    -webkit-user-drag:none;
+  }
+
+  .card-overlay{
+    position:absolute;
+    inset:0;
+    background:#2a1d15;
+    opacity:0;
+  }
+
+  .card-inset{
+    position:absolute;
+    inset:0;
+    border-radius:var(--card-radius);
+    box-shadow:inset 0 0 0 1px rgba(255,255,255,.10);
+    pointer-events:none;
+  }
+
+  .card-ghost{
+    position:absolute;
+    inset:0;
+    border-radius:var(--card-radius);
+    border:1px solid rgba(29,25,22,.28);
+    background:transparent;
+    opacity:0;
+  }
+
+  .card-border{
+    position:absolute;
+    inset:-1px;
+    border-radius:calc(var(--card-radius) + 1px);
+    border:2.5px solid var(--accent);
+    opacity:0;
+    pointer-events:none;
+  }
+
+  .card-shadow{
+    position:absolute;
+    inset:0;
+    border-radius:var(--card-radius);
+    box-shadow:0 8px 32px rgba(0,0,0,.12), 0 2px 8px rgba(0,0,0,.06);
+    pointer-events:none;
+  }
+
+  /* static edge slots */
+  .slot{
+    z-index:1;
+    overflow:hidden;
+    background:#efe7e0;
+    opacity:0;
+  }
+
+  .slot img{
+    display:block;
+    width:100%;
+    height:100%;
+    object-fit:cover;
+    -webkit-user-drag:none;
+  }
+
+  .slot-overlay{
+    position:absolute;
+    inset:0;
+    background:#2a1d15;
+    opacity:.26;
+  }
+
+  .slot-ring{
+    position:absolute;
+    inset:0;
+    box-shadow:inset 0 0 0 1px rgba(255,255,255,.10);
+  }
+
+  /* ---------------- Info block ---------------- */
+  .info{
+    width:100%;
+    max-width:460px;
+    margin-top:clamp(14px, 2.6vh, 34px);
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    text-align:center;
+  }
+
+  .info-meta{
+    display:flex;
+    align-items:center;
+    gap:7px;
+    font-size:10px;
+    letter-spacing:.18em;
+    text-transform:uppercase;
+    color:rgba(29,25,22,.40);
+  }
+
+  .info-meta .sep{ opacity:.5; }
+
+  .info-title{
+    margin:10px 0 0;
+    min-height:1.4em;
+    font-family:"Playfair Display",Georgia,serif;
+    font-weight:500;
+    font-size:21px;
+    line-height:1.35;
+    letter-spacing:-.01em;
+  }
+
+  .info-price{
+    margin-top:8px;
+    display:flex;
+    align-items:center;
+    gap:14px;
+    justify-content:center;
+  }
+
+  .price-now{
+    font-family:"Playfair Display",Georgia,serif;
+    font-size:26px;
+    line-height:1;
+    color:var(--fg);
+  }
+
+  .price-side{
+    display:flex;
+    flex-direction:column;
+    align-items:flex-start;
+    gap:2px;
+  }
+
+  .price-old{
+    font-size:12px;
+    line-height:1;
+    color:rgba(29,25,22,.40);
+    text-decoration:line-through;
+  }
+
+  .price-off{
+    font-size:10px;
+    font-weight:600;
+    letter-spacing:.08em;
+    line-height:1;
+    color:var(--accent-deep);
+  }
+
+  .info-actions{
+    margin-top:20px;
+    display:flex;
+    align-items:center;
+    gap:18px;
+  }
+
+  .btn-primary{
+    display:inline-flex;
+    align-items:center;
+    gap:7px;
+    padding:10px 24px;
+    border:0;
+    border-radius:999px;
+    background:var(--fg);
+    color:var(--bg);
+    font-family:inherit;
+    font-size:12px;
+    font-weight:500;
+    letter-spacing:.01em;
+    cursor:pointer;
+    transition:opacity .18s ease, transform .18s ease;
+  }
+  .btn-primary:hover{ opacity:.9; }
+  .btn-primary:active{ transform:scale(.95); }
+  .btn-primary svg{ flex:none; }
+
+  .btn-ghost{
+    display:inline-flex;
+    align-items:center;
+    gap:5px;
+    padding:0;
+    border:0;
+    background:none;
+    color:rgba(29,25,22,.60);
+    font-family:inherit;
+    font-size:12px;
+    cursor:pointer;
+    transition:color .18s ease;
+  }
+  .btn-ghost:hover{ color:var(--fg); }
+  .btn-ghost svg{ transition:transform .18s ease; }
+  .btn-ghost:hover svg{ transform:translateX(2px); }
+
+  .info-trust{
+    margin-top:18px;
+    display:flex;
+    align-items:center;
+    gap:8px;
+    flex-wrap:wrap;
+    justify-content:center;
+    font-size:10px;
+    color:rgba(29,25,22,.35);
+  }
+
+  .info-trust .dot{
+    width:1px;
+    height:9px;
+    background:rgba(29,25,22,.18);
+  }
+
+  .live-dot{
+    width:5px;
+    height:5px;
+    border-radius:50%;
+    background:#3f9b5f;
+    box-shadow:0 0 0 3px rgba(63,155,95,.14);
+  }
+
+  .trust-item{ display:inline-flex; align-items:center; gap:5px; }
+
+  /* ---------------- Hint ---------------- */
+  .hint{
+    margin-top:clamp(14px, 2.4vh, 26px);
+    display:inline-flex;
+    align-items:center;
+    gap:7px;
+    font-size:10px;
+    letter-spacing:.16em;
+    text-transform:uppercase;
+    color:rgba(29,25,22,.30);
+    transition:opacity .5s ease;
+  }
+
+  .hint.is-hidden{ opacity:0; }
+
+  .hint .arrows{
+    display:inline-flex;
+    gap:3px;
+    color:rgba(29,25,22,.38);
+  }
+
+  /* ---------------- Entrance ---------------- */
+  @keyframes revealUp{
+    from{ opacity:0; transform:translateY(18px); filter:blur(6px); }
+    to{ opacity:1; transform:translateY(0); filter:blur(0); }
+  }
+
+  [data-reveal]{
+    opacity:0;
+    animation:revealUp .85s cubic-bezier(.16,1,.3,1) forwards;
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    [data-reveal]{ animation-duration:.01ms; animation-delay:0s !important; }
+  }
+
+  @media (max-width:520px){
+    .section{ padding:76px 16px 56px; }
+    .desc{ font-size:13px; }
+    .info-actions{ gap:14px; }
+  }
+</style>
+</head>
+<body>
+
+<main class="section">
+  <div class="ambient" aria-hidden="true"></div>
+
+  <div class="eyebrow" data-reveal style="animation-delay:.12s">
+    <svg class="star" width="11" height="11" viewBox="0 0 12 12" fill="currentColor" aria-hidden="true"><path d="M6 0l1.4 4.6L12 6l-4.6 1.4L6 12 4.6 7.4 0 6l4.6-1.4z"/></svg>
+    <span class="rule"></span>
+    <span>Extrait · Absolu</span>
+    <span class="rule"></span>
+    <svg class="star" width="11" height="11" viewBox="0 0 12 12" fill="currentColor" aria-hidden="true"><path d="M6 0l1.4 4.6L12 6l-4.6 1.4L6 12 4.6 7.4 0 6l4.6-1.4z"/></svg>
+  </div>
+
+  <h1 class="title" data-reveal style="animation-delay:.24s">Leave a trace.</h1>
+
+  <p class="desc" data-reveal style="animation-delay:.4s">
+    Eight compositions for late rooms, slow mornings, and the moment someone
+    leans a little closer. Drag to find the one that stays.
+  </p>
+
+  <div class="stage-wrap">
+    <div class="stage" id="stage" role="region" aria-label="商品轮播，可拖动、滚轮或使用方向键切换" tabindex="0"></div>
+  </div>
+
+  <section class="info">
+    <div class="info-meta" data-reveal style="animation-delay:.7s">
+      <span id="iCat">Eau de Parfum</span>
+      <span class="sep">·</span>
+      <svg class="star" width="11" height="11" viewBox="0 0 12 12" fill="currentColor" aria-hidden="true"><path d="M6 0l1.4 4.6L12 6l-4.6 1.4L6 12 4.6 7.4 0 6l4.6-1.4z"/></svg>
+      <span id="iRating">4.9</span>
+      <span id="iReviews" style="opacity:.75">(860)</span>
+    </div>
+
+    <h2 class="info-title" id="iTitle" data-reveal style="animation-delay:.78s">Amber Hour</h2>
+
+    <div class="info-price" data-reveal style="animation-delay:.86s">
+      <span class="price-now" id="iPrice">$180</span>
+      <span class="price-side">
+        <span class="price-old" id="iOld">$240</span>
+        <span class="price-off" id="iOff">−25%</span>
+      </span>
+    </div>
+
+    <div class="info-actions" data-reveal style="animation-delay:.94s">
+      <button class="btn-primary" type="button">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M6 7h12l-1.2 12.2a2 2 0 0 1-2 1.8H9.2a2 2 0 0 1-2-1.8L6 7Z"/>
+          <path d="M9 7a3 3 0 0 1 6 0"/>
+        </svg>
+        Add to bag
+      </button>
+      <button class="btn-ghost" type="button">
+        View details
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M4 12h16"/><path d="m14 6 6 6-6 6"/>
+        </svg>
+      </button>
+    </div>
+
+    <div class="info-trust" data-reveal style="animation-delay:1.02s">
+      <span class="trust-item"><span class="live-dot"></span>In stock</span>
+      <span class="dot"></span>
+      <span class="trust-item">Complimentary shipping</span>
+      <span class="dot"></span>
+      <span class="trust-item">30-day returns</span>
+    </div>
+  </section>
+
+  <div class="hint" id="hint" data-reveal style="animation-delay:1.5s">
+    <span class="arrows">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg>
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>
+    </span>
+    Drag or swipe
+  </div>
+</main>
+
+<script>
+(() => {
+  "use strict";
+
+  /* ---------------------------------------------------------------
+     Constants (from spec)
+  --------------------------------------------------------------- */
+  const N               = 8;
+  const CARD_SIZE_BASE  = 280;
+  const CARD_ASPECT     = 1.2;
+  const CARD_RADIUS     = 24;
+  const FAN_ROTATION    = 5;
+  const FAN_SPREAD      = 0.42;
+  const SCALE_STEP      = 0.22;
+  const EDGE_SLOT       = 2;
+  const GHOST_RANGE     = 1.0;
+
+  const FRICTION        = 0.92;
+  const SNAP_SPRING     = 0.08;
+  const SNAP_DAMPING    = 0.75;
+  const DRAG_SENSITIVITY = 0.004;
+  const MAX_OVERLAY     = 0.26;
+
+  const ENTER_CENTER    = 0.30;
+  const ENTER_SIDE      = 0.70;
+  const ENTER_STAGGER   = 0.07;
+  const ENTER_DUR_CARD  = 0.70;
+  const ENTER_DUR_SIDE  = 0.75;
+  const ENTER_END       = ENTER_SIDE + ENTER_STAGGER + ENTER_DUR_SIDE;
+
+  /* ---------------------------------------------------------------
+     Data
+  --------------------------------------------------------------- */
+  const IMG = [
+    "./assets/scent-1.webp", "./assets/scent-2.webp", "./assets/scent-3.webp", "./assets/scent-4.webp",
+    "./assets/scent-5.webp", "./assets/scent-6.webp", "./assets/scent-7.webp", "./assets/scent-8.webp"
+  ];
+
+  const PRODUCTS = [
+    { title:"Amber Hour",    category:"Eau de Parfum",     price:"$180", originalPrice:"$240", discount:"−25%", rating:"4.9", reviews:"(860)",   image:IMG[0] },
+    { title:"Rose Static",   category:"Eau de Parfum",     price:"$165", originalPrice:"$210", discount:"−21%", rating:"4.8", reviews:"(1,412)", image:IMG[1] },
+    { title:"Night Vetiver", category:"Extrait de Parfum", price:"$210", originalPrice:"$260", discount:"−19%", rating:"4.7", reviews:"(534)",   image:IMG[2] },
+    { title:"Sage Bloom",    category:"Eau de Parfum",     price:"$158", originalPrice:"$208", discount:"−24%", rating:"4.6", reviews:"(692)",   image:IMG[3] },
+    { title:"Silk Musk",     category:"Eau de Parfum",     price:"$172", originalPrice:"$210", discount:"−18%", rating:"4.8", reviews:"(1,038)", image:IMG[4] },
+    { title:"Ember Santal",  category:"Extrait de Parfum", price:"$198", originalPrice:"$248", discount:"−20%", rating:"4.7", reviews:"(776)",   image:IMG[5] },
+    { title:"Noir Absolu",   category:"Extrait de Parfum", price:"$225", originalPrice:"$288", discount:"−22%", rating:"4.9", reviews:"(1,104)", image:IMG[6] },
+    { title:"Cashmere Rose", category:"Eau de Parfum",     price:"$148", originalPrice:"$175", discount:"−15%", rating:"4.8", reviews:"(1,263)", image:IMG[7] }
+  ];
+
+  /* ---------------------------------------------------------------
+     DOM
+  --------------------------------------------------------------- */
+  const stageEl = document.getElementById("stage");
+  const hintEl  = document.getElementById("hint");
+
+  const el = {
+    cat:     document.getElementById("iCat"),
+    rating:  document.getElementById("iRating"),
+    reviews: document.getElementById("iReviews"),
+    title:   document.getElementById("iTitle"),
+    price:   document.getElementById("iPrice"),
+    old:     document.getElementById("iOld"),
+    off:     document.getElementById("iOff")
+  };
+
+  /* ---------------------------------------------------------------
+     State
+  --------------------------------------------------------------- */
+  let cardSize   = getCardSize();
+  let spread     = FAN_SPREAD * cardSize;
+  let scrollPos  = 0;
+  let velocity   = 0;
+  let dragging   = false;
+  let isEntering = true;
+  let startTime  = performance.now();
+  let centered   = 0;         // current info index
+  let keyTarget  = null;      // keyboard glide target
+  let hasDragged = false;
+
+  const drag = { startX:0, startY:0, lastX:0, lastT:0, axis:null };
+
+  const cards = [];
+  let slotLeft, slotRight, slotLeftImg, slotRightImg;
+  let slotLeftSrc = "", slotRightSrc = "";
+
+  function getCardSize(){
+    const vw = window.innerWidth;
+    if (vw < 480)  return 180;
+    if (vw < 640)  return 210;
+    if (vw < 768)  return 240;
+    if (vw < 1024) return 260;
+    return CARD_SIZE_BASE;
+  }
+
+  const wrapIndex = i => ((i % N) + N) % N;
+
+  function wrapOffset(v){
+    v = ((v % N) + N) % N;
+    if (v > N / 2) v -= N;
+    return v;
+  }
+
+  const easeOutQuart = p => 1 - Math.pow(1 - p, 4);
+  const clamp01 = v => v < 0 ? 0 : v > 1 ? 1 : v;
+
+  /* ---------------------------------------------------------------
+     Build cards + static slots
+  --------------------------------------------------------------- */
+  function buildCard(product, i){
+    const node = document.createElement("div");
+    node.className = "card";
+    node.innerHTML = `
+      <div class="card-shadow" data-shadow></div>
+      <div class="card-image" data-image>
+        <img src="${product.image}" alt="${product.title}" draggable="false" decoding="async">
+        <div class="card-overlay" data-overlay></div>
+        <div class="card-inset"></div>
+      </div>
+      <div class="card-ghost" data-ghost></div>
+      <div class="card-border" data-border></div>
+    `;
+    stageEl.appendChild(node);
+
+    const initialOffset = wrapOffset(i);
+    const group = Math.round(Math.abs(initialOffset));
+    let start, dur;
+    if (group === 0){ start = ENTER_CENTER; dur = ENTER_DUR_CARD; }
+    else if (group === 1){ start = ENTER_SIDE; dur = ENTER_DUR_SIDE; }
+    else if (group === 2){ start = ENTER_SIDE + ENTER_STAGGER; dur = ENTER_DUR_SIDE; }
+    else { start = 99; dur = 0.01; }
+
+    return {
+      i,
+      node,
+      image:   node.querySelector("[data-image]"),
+      overlay: node.querySelector("[data-overlay]"),
+      ghost:   node.querySelector("[data-ghost]"),
+      border:  node.querySelector("[data-border]"),
+      shadow:  node.querySelector("[data-shadow]"),
+      start, dur
+    };
+  }
+
+  function buildSlot(side){
+    const node = document.createElement("div");
+    node.className = "slot";
+    node.innerHTML = `
+      <img alt="" draggable="false" decoding="async">
+      <div class="slot-overlay"></div>
+      <div class="slot-ring"></div>
+    `;
+    stageEl.appendChild(node);
+    return { node, img: node.querySelector("img"), side };
+  }
+
+  function init(){
+    cards.length = 0;
+    stageEl.querySelectorAll(".card, .slot").forEach(n => n.remove());
+
+    PRODUCTS.forEach((p, i) => cards.push(buildCard(p, i)));
+    slotLeft  = buildSlot("left");
+    slotRight = buildSlot("right");
+
+    layout();
+  }
+
+  /* ---------------------------------------------------------------
+     Sizing / layout
+  --------------------------------------------------------------- */
+  function layout(){
+    cardSize = getCardSize();
+    spread = FAN_SPREAD * cardSize;
+
+    const cardH = cardSize * CARD_ASPECT;
+    const edgeScale = Math.max(0.5, 1 - EDGE_SLOT * SCALE_STEP);
+    const edgeW = cardSize * edgeScale;
+    const edgeH = cardH * edgeScale;
+    const edgeR = CARD_RADIUS * edgeScale;
+
+    stageEl.style.height = `${cardH + 40}px`;
+    document.documentElement.style.setProperty("--card-radius", `${CARD_RADIUS}px`);
+
+    cards.forEach(c => {
+      c.node.style.width  = `${cardSize}px`;
+      c.node.style.height = `${cardH}px`;
+      c.node.style.marginLeft = `${-cardSize / 2}px`;
+      c.node.style.marginTop  = `${-cardH / 2}px`;
+    });
+
+    [slotLeft, slotRight].forEach(s => {
+      s.node.style.width = `${edgeW}px`;
+      s.node.style.height = `${edgeH}px`;
+      s.node.style.marginLeft = `${-edgeW / 2}px`;
+      s.node.style.marginTop  = `${-edgeH / 2}px`;
+      s.node.style.borderRadius = `${edgeR}px`;
+    });
+
+    slotLeftSrc = slotRightSrc = "";
+    updateCards((performance.now() - startTime) / 1000);
+    updateSlots((performance.now() - startTime) / 1000);
+  }
+
+  /* ---------------------------------------------------------------
+     The layout function
+  --------------------------------------------------------------- */
+  function updateCards(t){
+    const hiddenLimit = isEntering ? EDGE_SLOT : EDGE_SLOT + GHOST_RANGE;
+
+    for (let k = 0; k < cards.length; k++){
+      const c = cards[k];
+      const offset = wrapOffset(c.i - scrollPos);
+      const absOff = Math.abs(offset);
+
+      if (absOff > hiddenLimit){
+        if (c.node.style.visibility !== "hidden"){
+          c.node.style.visibility = "hidden";
+          c.node.style.opacity = "0";
+        }
+        continue;
+      }
+      if (c.node.style.visibility === "hidden") c.node.style.visibility = "visible";
+
+      const p = c.dur <= 0.02 ? 1 : clamp01((t - c.start) / c.dur);
+      const entrance = easeOutQuart(p);
+
+      const tx = offset * spread * entrance;
+      const rotation = offset * FAN_ROTATION * entrance;
+      const targetScale = Math.max(0.4, 1 - absOff * SCALE_STEP);
+      const scale = 0.3 + (targetScale - 0.3) * entrance;
+
+      c.node.style.transform = `translate3d(${tx.toFixed(2)}px,0px,0px) rotate(${rotation.toFixed(3)}deg) scale(${scale.toFixed(4)})`;
+
+      const isGhost = !isEntering && absOff >= EDGE_SLOT;
+      const ghostOpacity = isGhost
+        ? Math.max(0, 1 - (absOff - EDGE_SLOT) / GHOST_RANGE)
+        : 1;
+
+      c.node.style.opacity = (ghostOpacity * entrance).toFixed(3);
+      c.node.style.zIndex = isGhost ? 0 : Math.round((EDGE_SLOT + 1 - absOff) * 10);
+
+      c.image.style.opacity  = isGhost ? "0" : "1";
+      c.ghost.style.opacity  = isGhost ? "1" : "0";
+      c.shadow.style.opacity = isGhost ? "0" : "1";
+
+      const overlayOp = isGhost
+        ? 0
+        : Math.min(MAX_OVERLAY, (absOff / EDGE_SLOT) * MAX_OVERLAY);
+      c.overlay.style.opacity = overlayOp.toFixed(3);
+
+      const borderOpacity = isGhost ? 0 : Math.max(0, 1 - absOff * 2.5);
+      c.border.style.opacity = borderOpacity.toFixed(3);
+    }
+  }
+
+  /* ---------------------------------------------------------------
+     Static edge slots
+  --------------------------------------------------------------- */
+  function updateSlots(t){
+    const edgeScale = Math.max(0.5, 1 - EDGE_SLOT * SCALE_STEP);
+    const edgeRotation = FAN_ROTATION * EDGE_SLOT;
+    const offsetPx = EDGE_SLOT * spread;
+
+    const p = clamp01((t - (ENTER_SIDE + ENTER_STAGGER)) / ENTER_DUR_SIDE);
+    const entrance = easeOutQuart(p);
+    const fromScale = 0.3 / edgeScale;
+
+    [slotLeft, slotRight].forEach(s => {
+      const sign = s.side === "left" ? -1 : 1;
+      const tx = sign * offsetPx * entrance;
+      const rot = sign * edgeRotation * entrance;
+      const sc = fromScale + (1 - fromScale) * entrance;
+
+      s.node.style.transform =
+        `translate3d(${tx.toFixed(2)}px,0px,0px) rotate(${rot.toFixed(3)}deg) scale(${sc.toFixed(4)})`;
+      s.node.style.opacity = entrance.toFixed(3);
+    });
+
+    // Image swap on integer boundary — left uses floor, right uses ceil
+    const leftIdx  = wrapIndex(Math.floor(scrollPos) - EDGE_SLOT);
+    const rightIdx = wrapIndex(Math.ceil(scrollPos)  + EDGE_SLOT);
+
+    const leftSrc  = PRODUCTS[leftIdx].image;
+    const rightSrc = PRODUCTS[rightIdx].image;
+
+    if (leftSrc !== slotLeftSrc){
+      slotLeftSrc = leftSrc;
+      slotLeft.img.src = leftSrc;
+    }
+    if (rightSrc !== slotRightSrc){
+      slotRightSrc = rightSrc;
+      slotRight.img.src = rightSrc;
+    }
+  }
+
+  /* ---------------------------------------------------------------
+     Info block sync
+  --------------------------------------------------------------- */
+  function syncInfo(){
+    const idx = wrapIndex(Math.round(scrollPos));
+    if (idx === centered) return;
+    centered = idx;
+
+    const p = PRODUCTS[idx];
+    el.title.textContent   = p.title;
+    el.price.textContent   = p.price;
+    el.old.textContent     = p.originalPrice;
+    el.off.textContent     = p.discount;
+    el.rating.textContent  = p.rating;
+    el.reviews.textContent = p.reviews;
+    el.cat.textContent     = p.category;
+  }
+
+  /* ---------------------------------------------------------------
+     Animation loop
+  --------------------------------------------------------------- */
+  function tick(now){
+    const t = (now - startTime) / 1000;
+
+    if (isEntering && t >= ENTER_END) isEntering = false;
+
+    if (!dragging){
+      if (keyTarget !== null){
+        const diff = keyTarget - scrollPos;
+        if (Math.abs(diff) < 0.002){
+          scrollPos = keyTarget;
+          keyTarget = null;
+          velocity = 0;
+        } else {
+          scrollPos += diff * 0.14;
+          velocity = 0;
+        }
+      } else {
+        // momentum
+        scrollPos += velocity;
+        velocity *= FRICTION;
+
+        // snap spring
+        if (Math.abs(velocity) < 0.15){
+          const nearest = Math.round(scrollPos);
+          const diff = nearest - scrollPos;
+          velocity += diff * SNAP_SPRING;
+          velocity *= SNAP_DAMPING;
+        }
+
+        // jitter clamp
+        if (Math.abs(velocity) < 0.0005){
+          velocity = 0;
+          const nearest = Math.round(scrollPos);
+          if (Math.abs(nearest - scrollPos) < 0.01) scrollPos = nearest;
+        }
+      }
+    }
+
+    updateCards(t);
+    updateSlots(t);
+    syncInfo();
+
+    requestAnimationFrame(tick);
+  }
+
+  /* ---------------------------------------------------------------
+     Pointer drag
+  --------------------------------------------------------------- */
+  function onPointerDown(e){
+    if (e.pointerType === "mouse" && e.button !== 0) return;
+
+    drag.startX = e.clientX;
+    drag.startY = e.clientY;
+    drag.lastX = e.clientX;
+    drag.lastT = performance.now();
+    drag.axis = null;
+
+    dragging = true;
+    velocity = 0;
+    keyTarget = null;
+    stageEl.classList.add("is-dragging");
+
+    if (stageEl.setPointerCapture){
+      try { stageEl.setPointerCapture(e.pointerId); } catch(_) {}
+    }
+  }
+
+  function onPointerMove(e){
+    if (!dragging) return;
+
+    const adx = Math.abs(e.clientX - drag.startX);
+    const ady = Math.abs(e.clientY - drag.startY);
+
+    if (!drag.axis){
+      if (adx < 8 && ady < 8) return;
+      drag.axis = adx > ady * 1.2 ? "x" : "y";
+    }
+    if (drag.axis !== "x") return;
+
+    const now = performance.now();
+    const dx = e.clientX - drag.lastX;
+    const dt = Math.max(1, now - drag.lastT);
+
+    scrollPos -= dx * DRAG_SENSITIVITY;
+    velocity = (-dx * DRAG_SENSITIVITY / dt) * 16;
+
+    drag.lastX = e.clientX;
+    drag.lastT = now;
+
+    if (!hasDragged) markDragged();
+  }
+
+  function onPointerUp(){
+    if (!dragging) return;
+    dragging = false;
+    drag.axis = null;
+    stageEl.classList.remove("is-dragging");
+    velocity *= 1.1;
+  }
+
+  function markDragged(){
+    hasDragged = true;
+    if (hintEl) hintEl.classList.add("is-hidden");
+  }
+
+  /* ---------------------------------------------------------------
+     Wheel
+  --------------------------------------------------------------- */
+  function onWheel(e){
+    const absX = Math.abs(e.deltaX);
+    const absY = Math.abs(e.deltaY);
+    const delta = absX > absY ? e.deltaX : e.deltaY;
+
+    if (Math.abs(delta) > 2){
+      e.preventDefault();
+      keyTarget = null;
+      scrollPos += delta * 0.003;
+      velocity = delta * 0.001;
+      if (!hasDragged) markDragged();
+    }
+  }
+
+  /* ---------------------------------------------------------------
+     Keyboard
+  --------------------------------------------------------------- */
+  function onKeyDown(e){
+    let dir = 0;
+    if (e.key === "ArrowRight" || e.key === "ArrowDown") dir = 1;
+    else if (e.key === "ArrowLeft" || e.key === "ArrowUp") dir = -1;
+    else return;
+
+    e.preventDefault();
+    if (keyTarget === null) keyTarget = Math.round(scrollPos);
+    keyTarget += dir;
+    velocity = 0;
+    if (!hasDragged) markDragged();
+  }
+
+  /* ---------------------------------------------------------------
+     Boot
+  --------------------------------------------------------------- */
+  if (window.matchMedia("(prefers-reduced-motion: reduce)").matches){
+    startTime = performance.now() - 6000;
+    isEntering = false;
+  }
+
+  init();
+  requestAnimationFrame(tick);
+
+  stageEl.addEventListener("pointerdown", onPointerDown);
+  window.addEventListener("pointermove", onPointerMove, { passive: true });
+  window.addEventListener("pointerup", onPointerUp);
+  window.addEventListener("pointercancel", onPointerUp);
+
+  stageEl.addEventListener("wheel", onWheel, { passive: false });
+  stageEl.addEventListener("keydown", onKeyDown);
+  stageEl.addEventListener("dragstart", e => e.preventDefault());
+
+  let resizeTimer = null;
+  window.addEventListener("resize", () => {
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(layout, 120);
+  });
+})();
+</script>
+</body>
+</html>
